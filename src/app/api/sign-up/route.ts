@@ -1,4 +1,4 @@
-import { connectDB } from "@lib/db";
+import connectDB from "@lib/db";
 import UserModel from "@models";
 import bcrypt from "bcryptjs";
 import sendVerificationEmail from "@functions/sendVerificationEmail";

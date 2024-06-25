@@ -6,7 +6,7 @@ type connectionObject = {
 
 const connection: connectionObject = {};
 
-export const connectDB = async () => {
+const connectDB = async () => {
   if (connection.isConnected) {
     // in case the connection is already established
     console.log("DB is already connected");
@@ -27,3 +27,5 @@ export const connectDB = async () => {
     process.exit(1);
   }
 };
+
+export default connectDB;
