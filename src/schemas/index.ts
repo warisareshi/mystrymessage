@@ -1,14 +1,14 @@
 import { z } from "zod";
 
 // SIGN-UP SCHEMA
-const usernameSchema = z
+const usernameValidation = z
   .string()
   .min(2, "Atleast 2 Characters")
   .max(20, "Maximum 20 Characters")
   .regex(/^[a-zA-Z0-9_]+$/, "Username must not contain special characters");
 
 const signUpSchema = z.object({
-  username: usernameSchema,
+  username: usernameValidation,
 
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z
@@ -40,4 +40,4 @@ const messageSchema = z.object({
     .max(300, "Content must not exceed 300 characters"),
 });
 
-export {signUpSchema, signInSchema, verifySchema, acceptMessageSchema, messageSchema};
+export {signUpSchema, signInSchema, verifySchema, acceptMessageSchema, messageSchema, usernameValidation};
