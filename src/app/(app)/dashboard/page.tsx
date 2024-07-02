@@ -14,14 +14,23 @@ import { useSession } from "next-auth/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { acceptMessageSchema } from "@/schemas";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
 
+  const router = useRouter();
+
   const { toast } = useToast();
   const { data: session, status } = useSession();
+
+  if (!session) {
+    setTimeout(() => {
+      router.push("/");
+    }, 5000)
+  }
 
   const handleDeleteMessage = (messageId: string) => {
     setMessages(messages.filter((message) => message._id !== messageId));
