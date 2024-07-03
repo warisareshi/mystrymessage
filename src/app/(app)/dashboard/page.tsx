@@ -72,9 +72,7 @@ function UserDashboard() {
         const axiosError = error as AxiosError<ApiResponse>;
         toast({
           title: "Error",
-          description:
-            axiosError.response?.data.message ?? "Failed to fetch messages",
-          variant: "destructive",
+          description: "Failed to fetch messages",
         });
       } finally {
         setIsLoading(false);
