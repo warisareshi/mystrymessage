@@ -1,4 +1,5 @@
 "use client";
+
 import { MessageCard } from "@/components/MessageCard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -14,27 +15,19 @@ import { useSession } from "next-auth/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { acceptMessageSchema } from "@/schemas";
-import { useRouter } from "next/navigation";
 
-const Dashboard = () => {
+function UserDashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
 
-  const router = useRouter();
-
   const { toast } = useToast();
-  const { data: session, status } = useSession();
-
-  if (!session) {
-    setTimeout(() => {
-      router.push("/");
-    }, 5000)
-  }
 
   const handleDeleteMessage = (messageId: string) => {
     setMessages(messages.filter((message) => message._id !== messageId));
   };
+
+  const { data: session } = useSession();
 
   const form = useForm({
     resolver: zodResolver(acceptMessageSchema),
@@ -54,7 +47,7 @@ const Dashboard = () => {
         title: "Error",
         description:
           axiosError.response?.data.message ??
-          "Failed to fetch accept messages",
+          "Failed to fetch message settings",
         variant: "destructive",
       });
     } finally {
@@ -65,13 +58,13 @@ const Dashboard = () => {
   const fetchMessages = useCallback(
     async (refresh: boolean = false) => {
       setIsLoading(true);
-      setIsSwitchLoading(true);
+      setIsSwitchLoading(false);
       try {
-        const response = await axios.get<ApiResponse>("/api/messages");
-        setMessages(response.data?.messages || []);
+        const response = await axios.get<ApiResponse>("/api/get-messages");
+        setMessages(response.data.messages || []);
         if (refresh) {
           toast({
-            title: "Messages refreshed",
+            title: "Refreshed Messages",
             description: "Showing latest messages",
           });
         }
@@ -81,6 +74,7 @@ const Dashboard = () => {
           title: "Error",
           description:
             axiosError.response?.data.message ?? "Failed to fetch messages",
+          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
@@ -90,18 +84,26 @@ const Dashboard = () => {
     [setIsLoading, setMessages, toast]
   );
 
+  // Fetch initial state from the server
   useEffect(() => {
     if (!session || !session.user) return;
-    fetchMessages();
-    fetchAcceptMessages();
-  }, [session, fetchAcceptMessages, fetchMessages, toast, setValue]);
 
+    fetchMessages();
+
+    fetchAcceptMessages();
+  }, [session, setValue, toast, fetchAcceptMessages, fetchMessages]);
+
+  // Handle switch change
   const handleSwitchChange = async () => {
     try {
       const response = await axios.post<ApiResponse>("/api/accept-messages", {
         acceptMessages: !acceptMessages,
       });
       setValue("acceptMessages", !acceptMessages);
+      toast({
+        title: response.data.message,
+        variant: "default",
+      });
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       toast({
@@ -115,19 +117,19 @@ const Dashboard = () => {
   };
 
   if (!session || !session.user) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   const { username } = session.user as User;
 
   const baseUrl = `${window.location.protocol}//${window.location.host}`;
-
-  const profileUrl = `${baseUrl}/you/${username}`;
+  const profileUrl = `${baseUrl}/u/${username}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(profileUrl);
     toast({
-      title: "Copied to clipboard",
+      title: "URL Copied!",
+      description: "Profile URL has been copied to clipboard.",
     });
   };
 
@@ -179,7 +181,7 @@ const Dashboard = () => {
         {messages.length > 0 ? (
           messages.map((message, index) => (
             <MessageCard
-              key={message._id as string}
+              key={index}
               message={message}
               onMessageDelete={handleDeleteMessage}
             />
@@ -190,5 +192,6 @@ const Dashboard = () => {
       </div>
     </div>
   );
-};
-export default Dashboard;
+}
+
+export default UserDashboard;
